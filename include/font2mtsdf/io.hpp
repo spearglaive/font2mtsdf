@@ -14,7 +14,7 @@ namespace f2m {
 
 namespace f2m {
 	void read_into();
-	acma::result<void> write_to_output_from(std::string output_path, std::vector<std::array<std::byte, decoder::font_texture::size_bytes>> bytes);
+	acma::result<void> write_to_output_from(std::string output_path, sl::uint32_t compression_level, std::vector<std::array<std::byte, decoder::font_texture::size_bytes>> bytes);
 }
 
 
