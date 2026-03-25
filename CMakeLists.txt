@@ -6,7 +6,12 @@ set(CMAKE_CXX_STANDARD 26)
 set(SANITIZERS undefined address)
 
 set(CPP_FILES
-	
+	decode.cpp
+
+	exit_cause.cpp
+	io.cpp
+	main.cpp
+	parser_instance.cpp
 )
 list(TRANSFORM CPP_FILES PREPEND src/${PROJECT_NAME}/)
 
@@ -24,17 +29,33 @@ add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_shaders)
 
 
 #target_compile_options(${PROJECT_NAME} PUBLIC "-march=native")
-target_compile_options(${PROJECT_NAME} PUBLIC "-fno-rtti" "-fno-exceptions" "-Wall" "-Wextra" "$<$<CONFIG:RELEASE>:-Werror>")
+target_compile_options(${PROJECT_NAME} PUBLIC "-fno-rtti" "-Wall" "-Wextra" "$<$<CONFIG:RELEASE>:-Werror>")
 target_compile_options(${PROJECT_NAME} PUBLIC "$<$<CONFIG:RELEASE>:-Werror>" "$<$<CONFIG:RELEASE>:-O3>" "$<$<CONFIG:RELEASE>:-ffast-math>" "$<$<CONFIG:RELEASE>:-march=native>")
 target_compile_options(${PROJECT_NAME} PUBLIC "$<$<CONFIG:DEBUG>:-O0>" "$<$<CONFIG:DEBUG>:-g>")
+
+target_compile_options(${PROJECT_NAME} PUBLIC "-fopenmp")
+target_link_options(${PROJECT_NAME} PUBLIC "-fopenmp")
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang") # clang only
+    target_compile_options(${PROJECT_NAME} PUBLIC "-fsized-deallocation")
+    # Don't show warnings for C++20 designated field initializers.
+    target_compile_options(${PROJECT_NAME} PUBLIC "-Wno-missing-designated-field-initializers")
+else() # gcc only
+    # gcc has no "missing-designated-field-initializers" (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=96868)
+    target_compile_options(${PROJECT_NAME} PUBLIC "-Wno-missing-field-initializers")
+endif()
+
 
 #target_link_options(${PROJECT_NAME} PUBLIC "-fuse-ld=mold")
 #target_link_options(${PROJECT_NAME} PUBLIC "-v")
 
 #target_link_directories(${PROJECT_NAME} PUBLIC "/usr/local/lib" "/usr/lib")
 target_link_libraries(${PROJECT_NAME} PUBLIC sirius)
+target_link_libraries(${PROJECT_NAME} PUBLIC glfw)
 target_link_libraries(${PROJECT_NAME} PUBLIC vulkan)
 target_link_libraries(${PROJECT_NAME} PUBLIC llfio)
+target_link_libraries(${PROJECT_NAME} PUBLIC msdfgen-core)
+target_link_libraries(${PROJECT_NAME} PUBLIC msdfgen-ext)
 target_link_libraries(${PROJECT_NAME} PUBLIC harfbuzz)
 target_link_libraries(${PROJECT_NAME} PUBLIC ktx)
 
