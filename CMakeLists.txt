@@ -49,15 +49,27 @@ endif()
 #target_link_options(${PROJECT_NAME} PUBLIC "-fuse-ld=mold")
 #target_link_options(${PROJECT_NAME} PUBLIC "-v")
 
-#target_link_directories(${PROJECT_NAME} PUBLIC "/usr/local/lib" "/usr/lib")
-target_link_libraries(${PROJECT_NAME} PUBLIC sirius)
-target_link_libraries(${PROJECT_NAME} PUBLIC glfw)
-target_link_libraries(${PROJECT_NAME} PUBLIC vulkan)
-target_link_libraries(${PROJECT_NAME} PUBLIC llfio)
+set(PACKAGES
+	sirius
+	harfbuzz
+)
+
+list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX})
+find_package(PkgConfig REQUIRED)
+foreach(PKG IN LISTS PACKAGES)
+	string(TOUPPER ${PKG} PKG_UPPER)
+	pkg_search_module(${PKG_UPPER} REQUIRED ${PKG})
+	target_link_libraries(${PROJECT_NAME} PUBLIC ${${PKG_UPPER}_LIBRARIES})
+	target_link_directories(${PROJECT_NAME} PUBLIC ${${PKG_UPPER}_LIBRARY_DIRS})
+	target_link_options(${PROJECT_NAME} PUBLIC ${${PKG_UPPER}_LDFLAGS})
+	target_include_directories(${PROJECT_NAME} PUBLIC ${${PKG_UPPER}_INCLUDE_DIRS})
+	target_compile_options(${PROJECT_NAME} PUBLIC ${${PKG_UPPER}_CFLAGS})
+endforeach()
+
+target_link_libraries(${PROJECT_NAME} PUBLIC ktx)
 target_link_libraries(${PROJECT_NAME} PUBLIC msdfgen-core)
 target_link_libraries(${PROJECT_NAME} PUBLIC msdfgen-ext)
-target_link_libraries(${PROJECT_NAME} PUBLIC harfbuzz)
-target_link_libraries(${PROJECT_NAME} PUBLIC ktx)
+
 
 foreach(SAN IN LISTS SANITIZERS)
     target_compile_options(${PROJECT_NAME} PUBLIC "$<$<CONFIG:DEBUG>:-fsanitize=${SAN}>")
